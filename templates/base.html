@@ -3,20 +3,26 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}Code Explainer and Debugging Assistant{% endblock %}</title>
+  <title>{% block title %}SyntaxSense - Code Explainer and Debugging Assistant{% endblock %}</title>
   {% load static %}
+  <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
   {% block extra_head %}{% endblock %}
 </head>
 <body>
-  <header class="navbar">
+  <header class="navbar-wrapper">
     <div class="navbar-container">
       <a href="/" class="navbar-brand">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="16 18 22 12 16 6"></polyline>
-          <polyline points="8 6 2 12 8 18"></polyline>
-        </svg>
-        <span>Code Explainer</span>
+        <span class="brand-logo-badge">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="16 18 22 12 16 6"></polyline>
+            <polyline points="8 6 2 12 8 18"></polyline>
+          </svg>
+        </span>
+        <span class="brand-name">SyntaxSense</span>
       </a>
 
       <nav>
@@ -31,7 +37,7 @@
             </li>
           {% else %}
             <li><a href="/login" class="navbar-link {% if request.path == '/login' %}active{% endif %}">Log in</a></li>
-            <li><a href="/register" class="btn btn-primary btn-sm">Create account</a></li>
+            <li><a href="/register" class="btn btn-primary btn-sm">Create account ↗</a></li>
           {% endif %}
         </ul>
       </nav>

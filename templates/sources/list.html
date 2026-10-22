@@ -5,12 +5,13 @@
 
 {% block content %}
 <div>
-  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+  <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem;">
     <div>
-      <h1>Knowledge Sources</h1>
-      <p class="text-muted">Manage documentation and repositories used to explain your code.</p>
+      <span class="pill-tag pill-tag-lime">Documentation & Repos ↗</span>
+      <h1 style="margin-top: 0.25rem;">Knowledge Sources</h1>
+      <p class="text-muted" style="margin-bottom: 0;">Manage documentation, custom guides, and repositories used to ground your code explanations.</p>
     </div>
-    <a href="/sources/new" class="btn btn-primary">Add source</a>
+    <a href="/sources/new" class="btn btn-primary">Add source ↗</a>
   </div>
 
   <div id="sources-loading" class="state-box" style="display: block;">
@@ -21,7 +22,7 @@
   <div id="sources-empty" class="state-box" style="display: none;">
     <h3>No sources yet</h3>
     <p class="text-muted">Add documentation, pasted text, or a GitHub repository to ground your answers.</p>
-    <a href="/sources/new" class="btn btn-primary">Add source</a>
+    <a href="/sources/new" class="btn btn-primary">Add source ↗</a>
   </div>
 
   <div id="sources-error" class="alert alert-error" style="display: none;"></div>

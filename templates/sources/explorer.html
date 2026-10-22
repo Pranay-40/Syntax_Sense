@@ -5,10 +5,11 @@
 
 {% block content %}
 <div id="explorer-app" data-source-id="{{ source_id }}">
-  <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem;">
     <div>
-      <a href="/sources" class="text-muted text-sm" style="text-decoration: none;">&larr; Back to Sources</a>
-      <div style="display: flex; align-items: center; gap: 0.75rem; margin-top: 0.5rem;">
+      <a href="/sources" class="text-muted text-sm" style="text-decoration: none; display: inline-block; margin-bottom: 0.5rem;">&larr; Back to Sources</a><br>
+      <span class="pill-tag pill-tag-lime">Knowledge Explorer ↗</span>
+      <div style="display: flex; align-items: center; gap: 0.75rem; margin-top: 0.25rem;">
         <h1 id="source-name" style="margin-bottom: 0;">Loading...</h1>
         <span id="source-status-badge" class="badge badge-pending">Loading</span>
       </div>

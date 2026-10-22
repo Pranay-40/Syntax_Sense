@@ -1,13 +1,28 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Ask - Code Explainer and Debugging Assistant{% endblock %}
+{% block title %}Ask & Diagnose - SyntaxSense{% endblock %}
 
 {% block content %}
-<div style="max-width: 900px; margin: 0 auto;">
-  <div style="margin-bottom: 1.5rem;">
-    <h1>Explain Code & Find Bugs</h1>
-    <p class="text-muted">Submit your code and question. Answers are rigorously grounded with citations to your knowledge sources.</p>
+<div style="max-width: 960px; margin: 0 auto;">
+  <!-- Hero Section -->
+  <div style="margin-bottom: 2rem;">
+    <div class="tech-pill-badge">
+      <span class="pulse-dot"></span>
+      <span>BGE-Small (384d) • Supabase PgVector • Gemini 3.8 Flash</span>
+    </div>
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem;">
+      <div>
+        <span class="pill-tag pill-tag-lime">Grounded AI Engine ↗</span>
+        <h1 style="margin-top: 0.25rem;">Explain Code & Find Bugs</h1>
+        <p class="text-muted" style="font-size: 1.05rem; max-width: 650px; margin-bottom: 0;">
+          Submit your code and question. Every claim is strictly grounded with citations to your documentation and repositories.
+        </p>
+      </div>
+      <a href="/sources/new" class="btn btn-secondary btn-sm" style="margin-bottom: 0.25rem;">
+        + Add New Source ↗
+      </a>
+    </div>
   </div>
 
   <div id="ask-error" class="alert alert-error" style="display: none;"></div>
@@ -18,19 +33,36 @@
       <strong>No ready sources found.</strong> Add documentation or a repository to ground your answers, or proceed without sources.
     </div>
     <a href="/sources/new" class="btn btn-secondary btn-sm" style="white-space: nowrap; margin-left: 1rem;">
-      Add a source first
+      Add a source first ↗
     </a>
+  </div>
+
+  <!-- Presets Bar for Instant 1-Click Evaluation -->
+  <div class="presets-bar">
+    <span class="text-sm text-muted" style="font-weight: 700;">⚡ Quick Presets:</span>
+    <button type="button" class="preset-pill" onclick="applyPreset('requests')">
+      <span>⚡ Requests JSON Decode Bug</span>
+    </button>
+    <button type="button" class="preset-pill" onclick="applyPreset('security')">
+      <span>🛡️ SQL Injection & Leak</span>
+    </button>
+    <button type="button" class="preset-pill" onclick="applyPreset('async')">
+      <span>⏱️ Async Task Deadlock</span>
+    </button>
   </div>
 
   <form id="ask-form" onsubmit="return false;">
     {% csrf_token %}
 
     <div class="card">
+      <!-- Code Input with Attached Utility Bar -->
       <div class="form-group">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
-          <label for="code-input" style="margin-bottom: 0;">Code</label>
-          <div style="display: flex; align-items: center; gap: 0.75rem;">
-            <select id="language-select" class="form-control" style="width: auto; padding: 0.25rem 0.5rem; font-size: 0.85rem;">
+        <label for="code-input" style="margin-bottom: 0.45rem;">Your Code</label>
+        
+        <div class="code-utility-bar">
+          <div class="code-utility-left">
+            <span class="badge badge-secondary" id="editor-lang-badge">Code Editor</span>
+            <select id="language-select" class="form-control" style="width: auto; padding: 0.25rem 0.65rem; font-size: 0.8rem; background: #0E1219; color: #FFF; border-color: rgba(255,255,255,0.15);">
               <option value="">Language (Auto / Optional)</option>
               <option value="python">Python</option>
               <option value="javascript">JavaScript</option>
@@ -44,40 +76,101 @@
               <option value="html">HTML</option>
               <option value="css">CSS</option>
             </select>
-            <span class="text-muted text-sm" id="code-char-count">0 / 20,000</span>
+          </div>
+          <div class="code-utility-right">
+            <span class="text-sm" id="code-char-count" style="color: #94A3B8;">0 / 20,000</span>
+            <button type="button" class="btn btn-secondary btn-sm" id="copy-code-btn" onclick="copyEditorCode()" style="background: #232B3A; color: #FFF; border-color: rgba(255,255,255,0.1);">
+              <span id="copy-text">Copy</span>
+            </button>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="clearEditorCode()" style="background: #232B3A; color: #FFF; border-color: rgba(255,255,255,0.1);">
+              Clear
+            </button>
           </div>
         </div>
-        <textarea id="code-input" class="form-control form-mono" rows="11" placeholder="Paste your code snippet here (max 20,000 characters)..."></textarea>
+
+        <textarea id="code-input" class="form-control form-mono editor-with-bar" rows="11" placeholder="Paste your code snippet here (max 20,000 characters)..."></textarea>
       </div>
 
+      <!-- Question / Error Input -->
       <div class="form-group">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.45rem;">
           <label for="question-input" style="margin-bottom: 0;">Question or Error Description</label>
           <span class="text-muted text-sm" id="question-char-count">0 / 2,000</span>
         </div>
         <textarea id="question-input" class="form-control" rows="3" placeholder="What does this code do? Why is this failing? (max 2,000 characters)..."></textarea>
       </div>
 
-      <div class="form-group" style="margin-bottom: 0.5rem;">
-        <label style="margin-bottom: 0.5rem;">Search in Knowledge Sources:</label>
-        <div id="sources-checkboxes-loading" class="text-muted text-sm">
-          Loading your ready sources...
+      <!-- Interactive Knowledge Source Selector -->
+      <div class="form-group" style="margin-bottom: 1rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.65rem;">
+          <label style="margin-bottom: 0;">Search in Knowledge Sources:</label>
+          <button type="button" class="text-sm text-muted" onclick="toggleAllSources()" style="background: none; border: none; cursor: pointer; text-decoration: underline; font-weight: 600;">
+            Toggle All
+          </button>
         </div>
-        <div id="sources-checkboxes-list" style="display: flex; flex-direction: column; gap: 0.5rem; max-height: 200px; overflow-y: auto; padding: 0.5rem; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius);">
-          <!-- Checkboxes populated by ask.js -->
+        <div id="sources-checkboxes-loading" class="text-muted text-sm" style="padding: 0.5rem 0;">
+          Connecting to your vector knowledge base...
         </div>
-        <p class="text-muted text-sm" style="margin-top: 0.35rem;">
-          Ticked sources will be retrieved with local vector embeddings. If unticked, code is analyzed alone.
+        <div id="sources-checkboxes-list" class="source-cards-grid">
+          <!-- Populated by ask.js with interactive source cards -->
+        </div>
+        <p class="text-muted text-sm" style="margin-top: 0.75rem;">
+          Ticked sources are retrieved using local 384-dimensional dense vectors + Supabase pgvector. Unticked sources analyze code alone.
         </p>
       </div>
 
-      <div style="display: flex; justify-content: flex-end; margin-top: 1.25rem;">
-        <button type="submit" id="ask-btn" class="btn btn-primary" style="min-width: 150px;">
-          Ask Assistant
+      <!-- Submit Row -->
+      <div style="display: flex; justify-content: flex-end; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-light);">
+        <button type="submit" id="ask-btn" class="btn btn-primary" style="min-width: 190px; padding: 0.85rem 1.8rem; font-size: 1rem;">
+          Explain & Diagnose ↗
         </button>
       </div>
     </div>
   </form>
+
+  <!-- FAQ Accordion (From Reference Designs) -->
+  <section class="faq-section" style="margin-top: 4rem;">
+    <div style="text-align: center; margin-bottom: 2rem;">
+      <span class="pill-tag">Knowledge & Grounding ↗</span>
+      <h2>Frequently Asked Questions</h2>
+      <p class="text-muted">How SyntaxSense guarantees factual, citation-backed code diagnoses.</p>
+    </div>
+
+    <div class="faq-accordion">
+      <div class="faq-item" onclick="toggleFaq(this)">
+        <div class="faq-header">
+          <span class="faq-num">01</span>
+          <span class="faq-question">How does grounded vector retrieval prevent AI hallucinations?</span>
+          <span class="faq-toggle-icon">+</span>
+        </div>
+        <div class="faq-body">
+          <p>Before Gemini receives your question, your documents and repositories are indexed into 384-dimensional dense vectors using local BGE-small embeddings. The top 8 most semantically relevant chunks are retrieved from Supabase pgvector. Gemini is strictly instructed to generate explanations using ONLY the provided chunk evidence and must attach verifiable [n] citations.</p>
+        </div>
+      </div>
+
+      <div class="faq-item" onclick="toggleFaq(this)">
+        <div class="faq-header">
+          <span class="faq-num">02</span>
+          <span class="faq-question">What does "Not enough evidence in your sources" mean?</span>
+          <span class="faq-toggle-icon">+</span>
+        </div>
+        <div class="faq-body">
+          <p>When the cosine similarity score of all retrieved chunks falls below the 0.60 threshold, the system flags an evidence warning. The assistant explicitly tells you that the documents do not cover the topic, and any diagnostic insights are strictly marked as "From the code only, not from your documents".</p>
+        </div>
+      </div>
+
+      <div class="faq-item" onclick="toggleFaq(this)">
+        <div class="faq-header">
+          <span class="faq-num">03</span>
+          <span class="faq-question">Is my code or repository ever executed or imported?</span>
+          <span class="faq-toggle-icon">+</span>
+        </div>
+        <div class="faq-body">
+          <p>Never. SyntaxSense treats all user-submitted code and repository files strictly as static text data. No code is compiled, executed, imported, or run in a sandbox, preventing code execution attacks by design.</p>
+        </div>
+      </div>
+    </div>
+  </section>
 </div>
 {% endblock %}
 

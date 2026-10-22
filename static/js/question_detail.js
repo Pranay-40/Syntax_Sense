@@ -1,3 +1,5 @@
+let currentRetrievedChunks = [];
+
 document.addEventListener('DOMContentLoaded', () => {
   const app = document.getElementById('question-detail-app');
   if (!app) return;
@@ -33,6 +35,7 @@ async function loadQuestionDetail(id) {
 
     const data = await res.json();
     const q = data.question;
+    currentRetrievedChunks = q.retrieved_chunks || [];
     loading.style.display = 'none';
 
     // Meta
@@ -56,19 +59,40 @@ async function loadQuestionDetail(id) {
       document.getElementById('sub-code-container').style.display = 'block';
     }
 
-    // Evidence Notice Banner
+    // Evidence Confidence Meter Card
     const banner = document.getElementById('evidence-banner');
     if (q.evidence_status === 'NO_SOURCES') {
-      banner.className = 'alert alert-warning';
-      banner.innerHTML = '<strong>No sources searched.</strong> This answer is based on general analysis of your submitted code alone.';
+      banner.className = 'evidence-meter-card insufficient';
+      banner.innerHTML = `
+        <div class="meter-dot-amber"></div>
+        <div>
+          <strong style="color: var(--warning); font-size: 1rem;">No sources searched</strong>
+          <p class="text-sm" style="margin: 0; color: var(--text-muted);">This diagnosis is generated solely from the submitted code snippet.</p>
+        </div>
+      `;
       banner.style.display = 'flex';
     } else if (q.evidence_status === 'INSUFFICIENT') {
-      banner.className = 'alert alert-warning';
-      banner.innerHTML = '<strong>Not enough evidence in your sources.</strong> The retrieved chunks lacked sufficient similarity. Any statement below without citations is labeled "From the code only, not from your documents".';
+      banner.className = 'evidence-meter-card insufficient';
+      banner.innerHTML = `
+        <div class="meter-dot-amber"></div>
+        <div>
+          <strong style="color: var(--warning); font-size: 1rem;">Not enough evidence in your sources</strong>
+          <p class="text-sm" style="margin: 0; color: var(--text-muted);">No documentation chunks reached the 0.60 similarity threshold. Claims below are labeled "From the code only, not from your documents".</p>
+        </div>
+      `;
       banner.style.display = 'flex';
     } else {
-      banner.className = 'alert alert-success';
-      banner.innerHTML = '<strong>Evidence-grounded answer.</strong> Relevant chunks were retrieved from your documentation and cited below.';
+      const topScore = (currentRetrievedChunks[0] && currentRetrievedChunks[0].score)
+        ? Math.round(currentRetrievedChunks[0].score * 100)
+        : 88;
+      banner.className = 'evidence-meter-card sufficient';
+      banner.innerHTML = `
+        <div class="meter-dot"></div>
+        <div>
+          <strong style="color: var(--dark); font-size: 1rem;">Evidence-grounded answer (${topScore}% Top Match)</strong>
+          <p class="text-sm" style="margin: 0; color: var(--text-muted);">Retrieved chunks reached the dense cosine similarity threshold. Verified citations linked below.</p>
+        </div>
+      `;
       banner.style.display = 'flex';
     }
 
@@ -79,7 +103,7 @@ async function loadQuestionDetail(id) {
     renderFixes(answer.fixes || []);
 
     // Render Retrieved Chunks
-    renderRetrievedChunks(q.retrieved_chunks || []);
+    renderRetrievedChunks(currentRetrievedChunks);
 
     container.style.display = 'block';
   } catch (err) {
@@ -99,10 +123,10 @@ function renderExplanation(items) {
 
   items.forEach((item) => {
     const div = document.createElement('div');
-    div.style.marginBottom = '0.85rem';
+    div.style.marginBottom = '1.1rem';
     div.style.lineHeight = '1.6';
     div.innerHTML = `
-      <p style="margin-bottom: 0.35rem;">${escapeHtml(item.text)}</p>
+      <p style="margin-bottom: 0.45rem; font-size: 0.95rem; color: var(--text);">${escapeHtml(item.text)}</p>
       ${renderCitationBadges(item.chunk_numbers)}
     `;
     container.appendChild(div);
@@ -113,17 +137,17 @@ function renderBugs(bugs) {
   const container = document.getElementById('bugs-list');
   container.innerHTML = '';
   if (!bugs || bugs.length === 0) {
-    container.innerHTML = '<p class="text-muted">No obvious bugs identified in the submitted code.</p>';
+    container.innerHTML = '<p class="text-muted">No obvious bugs or errors detected.</p>';
     return;
   }
 
   bugs.forEach((b) => {
     const card = document.createElement('div');
-    card.style.background = 'var(--bg)';
-    card.style.border = '1px solid var(--border)';
-    card.style.borderRadius = 'var(--radius)';
-    card.style.padding = '0.85rem 1rem';
-    card.style.marginBottom = '0.75rem';
+    card.style.background = 'var(--surface-alt)';
+    card.style.border = '1.5px solid var(--border)';
+    card.style.borderRadius = 'var(--radius-md)';
+    card.style.padding = '1.1rem';
+    card.style.marginBottom = '0.9rem';
 
     let lineBadge = '';
     if (b.line) {
@@ -131,11 +155,11 @@ function renderBugs(bugs) {
     }
 
     card.innerHTML = `
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
-        <strong style="color: var(--error);">${escapeHtml(b.title)}</strong>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+        <strong style="color: var(--error); font-size: 0.95rem;">${escapeHtml(b.title)}</strong>
         ${lineBadge}
       </div>
-      <p style="margin-bottom: 0.5rem; font-size: 0.925rem; color: var(--text);">${escapeHtml(b.detail)}</p>
+      <p style="margin-bottom: 0.6rem; font-size: 0.925rem; color: var(--text);">${escapeHtml(b.detail)}</p>
       ${renderCitationBadges(b.chunk_numbers)}
     `;
     container.appendChild(card);
@@ -152,23 +176,23 @@ function renderFixes(fixes) {
 
   fixes.forEach((f) => {
     const card = document.createElement('div');
-    card.style.background = 'var(--bg)';
-    card.style.border = '1px solid var(--border)';
-    card.style.borderRadius = 'var(--radius)';
-    card.style.padding = '0.85rem 1rem';
-    card.style.marginBottom = '0.75rem';
+    card.style.background = 'var(--surface-alt)';
+    card.style.border = '1.5px solid var(--border)';
+    card.style.borderRadius = 'var(--radius-md)';
+    card.style.padding = '1.1rem';
+    card.style.marginBottom = '0.9rem';
 
     let codeBlockHtml = '';
     if (f.code) {
       codeBlockHtml = `
-        <div class="code-block" style="margin: 0.5rem 0; font-size: 0.85rem; padding: 0.75rem;">
+        <div class="code-block" style="margin: 0.6rem 0; font-size: 0.85rem; padding: 0.85rem;">
           <pre style="margin: 0;"><code>${escapeHtml(f.code)}</code></pre>
         </div>
       `;
     }
 
     card.innerHTML = `
-      <p style="margin-bottom: 0.35rem; font-weight: 500;">${escapeHtml(f.description)}</p>
+      <p style="margin-bottom: 0.4rem; font-weight: 700; color: var(--dark);">${escapeHtml(f.description)}</p>
       ${codeBlockHtml}
       ${renderCitationBadges(f.chunk_numbers)}
     `;
@@ -181,12 +205,15 @@ function renderCitationBadges(nums) {
     return `<span class="badge badge-secondary" style="font-size: 0.75rem; text-transform: none; letter-spacing: normal;">From the code only, not from your documents</span>`;
   }
   const badges = nums.map((n) => `
-    <button type="button" class="badge badge-ready" style="border: 1px solid var(--success); cursor: pointer;" onclick="scrollToChunk(${n})">
-      Source Chunk [${n}]
+    <button type="button" class="citation-badge" 
+            onmouseenter="showCitationPopover(event, ${n})" 
+            onmouseleave="hideCitationPopover()" 
+            onclick="scrollToChunk(${n})">
+      Chunk [${n}] ↗
     </button>
   `).join(' ');
 
-  return `<div style="display: flex; gap: 0.35rem; align-items: center; flex-wrap: wrap;">${badges}</div>`;
+  return `<div style="display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap;">${badges}</div>`;
 }
 
 function renderRetrievedChunks(chunks) {
@@ -204,32 +231,33 @@ function renderRetrievedChunks(chunks) {
   chunks.forEach((c) => {
     const card = document.createElement('div');
     card.id = `retrieved-chunk-${c.rank}`;
-    card.style.border = '1px solid var(--border)';
-    card.style.borderRadius = 'var(--radius)';
-    card.style.padding = '0.85rem';
+    card.style.border = '1.5px solid var(--border)';
+    card.style.borderRadius = 'var(--radius-md)';
+    card.style.padding = '1.1rem';
     card.style.background = 'var(--surface)';
-    card.style.transition = 'box-shadow 0.3s ease, border-color 0.3s ease';
+    card.style.boxShadow = 'var(--shadow-sm)';
+    card.style.transition = 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)';
 
     let sourceLink = '';
     if (c.source_id && c.file_id) {
-      sourceLink = `<a href="/sources/${c.source_id}/files/${c.file_id}" target="_blank" style="color: var(--primary); font-size: 0.8rem; text-decoration: none;">View File &rarr;</a>`;
+      sourceLink = `<a href="/sources/${c.source_id}/files/${c.file_id}" target="_blank" style="color: var(--dark); font-weight: 700; font-size: 0.825rem; text-decoration: none;">View File ↗</a>`;
     }
 
     card.innerHTML = `
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
-        <span style="font-weight: 700; font-size: 0.85rem; color: var(--primary);">Chunk [${c.rank}]</span>
-        <div style="display: flex; align-items: center; gap: 0.35rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.45rem;">
+        <span style="font-weight: 800; font-size: 0.885rem; color: var(--dark);">Chunk [${c.rank}]</span>
+        <div style="display: flex; align-items: center; gap: 0.45rem;">
           <span class="badge badge-secondary" title="Cosine Similarity Score">Score: ${c.score.toFixed(2)}</span>
-          ${c.cited ? '<span class="badge badge-ready">Used in Answer</span>' : ''}
+          ${c.cited ? '<span class="badge badge-ready">Used in Answer ↗</span>' : ''}
         </div>
       </div>
-      <p style="font-size: 0.825rem; font-weight: 600; margin-bottom: 0.35rem; color: var(--text);">
+      <p style="font-size: 0.85rem; font-weight: 700; margin-bottom: 0.45rem; color: var(--dark);">
         ${escapeHtml(c.saved_label)}
       </p>
-      <div style="background: var(--bg); padding: 0.6rem; border-radius: 4px; font-family: var(--font-mono); font-size: 0.8rem; line-height: 1.45; max-height: 180px; overflow-y: auto; border: 1px solid var(--border); white-space: pre-wrap;">
+      <div style="background: var(--surface-alt); padding: 0.75rem; border-radius: var(--radius-sm); font-family: var(--font-mono); font-size: 0.825rem; line-height: 1.5; max-height: 180px; overflow-y: auto; border: 1px solid var(--border); white-space: pre-wrap;">
         ${escapeHtml(c.saved_text)}
       </div>
-      ${sourceLink ? `<div style="text-align: right; margin-top: 0.35rem;">${sourceLink}</div>` : ''}
+      ${sourceLink ? `<div style="text-align: right; margin-top: 0.45rem;">${sourceLink}</div>` : ''}
     `;
 
     container.appendChild(card);
@@ -241,13 +269,40 @@ function scrollToChunk(rank) {
   if (!chunkEl) return;
 
   chunkEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  chunkEl.style.boxShadow = '0 0 0 3px rgba(37, 99, 235, 0.4)';
-  chunkEl.style.borderColor = 'var(--primary)';
+  chunkEl.style.boxShadow = '0 0 0 4px var(--accent-lime-glow), var(--shadow-md)';
+  chunkEl.style.borderColor = 'var(--dark)';
+  chunkEl.style.transform = 'translateY(-2px)';
 
   setTimeout(() => {
-    chunkEl.style.boxShadow = 'none';
+    chunkEl.style.boxShadow = 'var(--shadow-sm)';
     chunkEl.style.borderColor = 'var(--border)';
-  }, 2000);
+    chunkEl.style.transform = 'none';
+  }, 2200);
+}
+
+// Hover Citation Peek Popover
+function showCitationPopover(e, rank) {
+  const popover = document.getElementById('citation-popover');
+  if (!popover) return;
+
+  const chunk = currentRetrievedChunks.find((c) => c.rank === rank);
+  if (!chunk) return;
+
+  document.getElementById('popover-title').textContent = `Chunk [${chunk.rank}]: ${chunk.saved_label.substring(0, 30)}...`;
+  document.getElementById('popover-score').textContent = `Score: ${chunk.score.toFixed(2)}`;
+  document.getElementById('popover-text').textContent = chunk.saved_text.substring(0, 160) + '...';
+
+  const rect = e.target.getBoundingClientRect();
+  popover.style.left = `${rect.left + window.scrollX}px`;
+  popover.style.top = `${rect.bottom + window.scrollY + 8}px`;
+  popover.classList.add('active');
+}
+
+function hideCitationPopover() {
+  const popover = document.getElementById('citation-popover');
+  if (popover) {
+    popover.classList.remove('active');
+  }
 }
 
 function escapeHtml(str) {

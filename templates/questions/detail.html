@@ -5,13 +5,14 @@
 
 {% block content %}
 <div id="question-detail-app" data-question-id="{{ question_id }}">
-  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+  <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem;">
     <div>
-      <a href="/questions" class="text-muted text-sm" style="text-decoration: none;">&larr; Back to History</a>
-      <h1 style="margin-top: 0.35rem; margin-bottom: 0.25rem;">Analysis & Grounded Answer</h1>
+      <a href="/questions" class="text-muted text-sm" style="text-decoration: none; display: inline-block; margin-bottom: 0.5rem;">&larr; Back to History</a><br>
+      <span class="pill-tag pill-tag-lime">Diagnostic Report ↗</span>
+      <h1 style="margin-top: 0.25rem; margin-bottom: 0.25rem;">Analysis & Grounded Answer</h1>
       <p id="question-created-meta" class="text-muted text-sm"></p>
     </div>
-    <a href="/" class="btn btn-primary btn-sm">Ask another question</a>
+    <a href="/" class="btn btn-primary btn-sm">Ask another question ↗</a>
   </div>
 
   <div id="answer-loading" class="state-box">
@@ -83,7 +84,13 @@
           </div>
         </div>
       </div>
+  <!-- Floating Citation Peek Popover -->
+  <div id="citation-popover" class="citation-popover">
+    <div class="citation-popover-header">
+      <span id="popover-title" style="color: var(--dark);"></span>
+      <span id="popover-score" class="badge badge-secondary" style="font-size: 0.7rem;"></span>
     </div>
+    <div id="popover-text" class="citation-popover-text"></div>
   </div>
 </div>
 {% endblock %}

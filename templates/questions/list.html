@@ -5,12 +5,13 @@
 
 {% block content %}
 <div>
-  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+  <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem;">
     <div>
-      <h1>Question History</h1>
-      <p class="text-muted">Review your past code explanations, bug diagnoses, and retrieved chunk citations.</p>
+      <span class="pill-tag pill-tag-lime">Saved Diagnoses ↗</span>
+      <h1 style="margin-top: 0.25rem;">Question History</h1>
+      <p class="text-muted" style="margin-bottom: 0;">Review your past code explanations, bug diagnoses, and retrieved chunk citations.</p>
     </div>
-    <a href="/" class="btn btn-primary">Ask new question</a>
+    <a href="/" class="btn btn-primary">Ask new question ↗</a>
   </div>
 
   <div id="history-loading" class="state-box">
