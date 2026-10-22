@@ -29,7 +29,8 @@ def embed_chunks(texts):
     Returns a list of 384-dimensional float lists.
     """
     model = get_embedding_model()
-    embeddings = model.encode(texts, batch_size=16, normalize_embeddings=True, show_progress_bar=False)
+    with torch.no_grad():
+        embeddings = model.encode(texts, batch_size=8, normalize_embeddings=True, show_progress_bar=False)
     return embeddings.tolist()
 
 def embed_query(query_text):
@@ -39,7 +40,8 @@ def embed_query(query_text):
     """
     model = get_embedding_model()
     prompted_query = f"Represent this sentence for searching relevant passages: {query_text}"
-    embedding = model.encode(prompted_query, normalize_embeddings=True, show_progress_bar=False)
+    with torch.no_grad():
+        embedding = model.encode(prompted_query, normalize_embeddings=True, show_progress_bar=False)
     return embedding.tolist()
 
 def retrieve_relevant_chunks(query_text: str, source_ids: list, user, limit: int = 8):

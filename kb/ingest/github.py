@@ -53,21 +53,37 @@ def parse_github_url(url):
 
 def download_github_zip(owner, repo):
     """
-    Download public repository zipball in memory from GitHub REST API.
+    Download public repository zipball in memory.
+    Tries GitHub API first. If GitHub API returns 403/429 (e.g. on shared cloud IPs like Render),
+    automatically falls back to direct GitHub web archive download (HEAD.zip).
     Returns: bytes
     """
+    import os
+    token = os.environ.get("GITHUB_TOKEN")
+    headers = {"Accept": "application/vnd.github.v3+json", "User-Agent": "SyntaxSense-RAG-App"}
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+
     api_url = f"https://api.github.com/repos/{owner}/{repo}/zipball"
-    headers = {"Accept": "application/vnd.github.v3+json", "User-Agent": "Vibethon-RAG-App"}
+    response = None
 
     try:
         response = requests.get(api_url, headers=headers, stream=True, timeout=20)
-    except requests.RequestException as e:
-        raise GitHubError(f"Network error contacting GitHub: {str(e)}")
+    except requests.RequestException:
+        pass
 
-    if response.status_code == 404 or response.status_code == 403:
+    # If API hit rate limit (403/429) or failed, fall back to direct web archive download
+    if response is None or response.status_code in (403, 429):
+        web_url = f"https://github.com/{owner}/{repo}/archive/HEAD.zip"
+        try:
+            response = requests.get(web_url, headers={"User-Agent": "Mozilla/5.0"}, stream=True, timeout=25)
+        except requests.RequestException as e:
+            raise GitHubError(f"Network error contacting GitHub: {str(e)}")
+
+    if response.status_code == 404:
         raise GitHubError("Repository not found or not public")
     elif not response.ok:
-        raise GitHubError(f"GitHub API returned error: {response.status_code}")
+        raise GitHubError(f"GitHub returned error code {response.status_code}")
 
     # Read up to MAX_ZIP_BYTES safely
     buffer = io.BytesIO()
