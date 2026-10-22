@@ -1,4 +1,5 @@
 import threading
+import torch
 from django.conf import settings
 from sentence_transformers import SentenceTransformer
 from pgvector.django import CosineDistance
@@ -8,13 +9,18 @@ _model = None
 _model_lock = threading.Lock()
 
 def get_embedding_model():
-    """Load the sentence-transformers model once per server process."""
+    """Load the sentence-transformers model once per server process with low memory footprint."""
     global _model
     if _model is None:
         with _model_lock:
             if _model is None:
+                # Limit PyTorch to single thread to conserve memory on 512MB RAM instances
+                try:
+                    torch.set_num_threads(1)
+                except Exception:
+                    pass
                 model_name = getattr(settings, 'EMBEDDING_MODEL_NAME', 'BAAI/bge-small-en-v1.5')
-                _model = SentenceTransformer(model_name)
+                _model = SentenceTransformer(model_name, device='cpu')
     return _model
 
 def embed_chunks(texts):
@@ -23,7 +29,7 @@ def embed_chunks(texts):
     Returns a list of 384-dimensional float lists.
     """
     model = get_embedding_model()
-    embeddings = model.encode(texts, batch_size=32, normalize_embeddings=True, show_progress_bar=False)
+    embeddings = model.encode(texts, batch_size=16, normalize_embeddings=True, show_progress_bar=False)
     return embeddings.tolist()
 
 def embed_query(query_text):
