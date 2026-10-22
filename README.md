@@ -1,36 +1,70 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Syntax Sense: Code Explainer and Debugging Assistant (RAG)
 
-## Getting Started
+An intelligent full-stack Retrieval-Augmented Generation (RAG) web application that helps developers understand code, diagnose bugs, and receive verified fixes with strict chunk citations to official documentation and repositories.
 
-First, run the development server:
+## ✨ Key Features
+- **Knowledge Ingestion (3 Modalities):**
+  - **Pasted Text:** Markdown or plain text notes with automatic topic detection.
+  - **Document Upload:** In-memory PDF, DOCX, and TXT parsing with page tracking.
+  - **Public GitHub Repositories:** In-memory repository ZIP download, smart language filtering, directory tree builder, and file detail previews.
+- **Local Embeddings & Vector Storage:**
+  - Embeddings generated locally via `sentence-transformers` (`BAAI/bge-small-en-v1.5`, 384 dimensions).
+  - High-performance vector similarity search using Supabase PostgreSQL + `pgvector` HNSW cosine indexing.
+- **Grounded AI Diagnosis:**
+  - Powered by Gemini `gemini-3.8-flash` with structured output schemas.
+  - Strict evidence citations (`[1]`, `[2]`) linked directly to retrieved documentation chunks.
+  - Anti-hallucination guardrails: flags insufficient evidence when chunks fall below the 0.60 similarity threshold and marks unbacked claims as *"From the code only"*.
+  - Code safety guarantee: user submitted code is strictly analyzed as text and never executed.
+- **Session & History:**
+  - User authentication with email and password.
+  - Full question history with preserved citation snapshots that survive source deletions.
+  - Responsive design adapting from mobile (360px) to desktop (1280px+).
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 🛠️ Tech Stack
+- **Backend:** Python 3.13, Django 6.1
+- **Database:** Supabase PostgreSQL with `pgvector`
+- **Embedding Model:** `sentence-transformers` (`BAAI/bge-small-en-v1.5`)
+- **LLM:** Google GenAI (`gemini-3.8-flash`)
+- **Frontend:** Django Templates + Vanilla CSS + Vanilla JS
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🚀 Getting Started Locally
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 1. Prerequisites
+- Python 3.11+
+- A Supabase project with `pgvector` enabled
+- A Google Gemini API key
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 2. Setup
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/Pranay-40/Syntax_Sense.git
+   cd Syntax_Sense
+   ```
 
-## Learn More
+2. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-To learn more about Next.js, take a look at the following resources:
+3. Configure environment variables:
+   Copy `.env.example` to `.env` and fill in your credentials:
+   ```env
+   DEBUG=True
+   SECRET_KEY=your-django-secret-key
+   DATABASE_URL=postgresql://postgres.xxx:password@aws-0-region.pooler.supabase.com:5432/postgres
+   GEMINI_API_KEY=your-gemini-api-key
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+4. Run migrations & seed data:
+   ```bash
+   python manage.py migrate
+   python manage.py seed
+   ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+5. Start the development server:
+   ```bash
+   python manage.py runserver 127.0.0.1:8000
+   ```
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+6. Open [http://127.0.0.1:8000](http://127.0.0.1:8000) in your browser.  
+   Demo credentials: `demo@example.com` / `change-me-too` (or register a new user).

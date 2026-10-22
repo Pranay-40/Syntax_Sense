@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Ask - Code Explainer and Debugging Assistant{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 0 auto;">
+  <div style="margin-bottom: 1.5rem;">
+    <h1>Explain Code & Find Bugs</h1>
+    <p class="text-muted">Submit your code and question. Answers are rigorously grounded with citations to your knowledge sources.</p>
+  </div>
+
+  <div id="ask-error" class="alert alert-error" style="display: none;"></div>
+
+  <!-- If user has no ready sources -->
+  <div id="no-sources-banner" class="alert alert-warning" style="display: none; justify-content: space-between; align-items: center;">
+    <div>
+      <strong>No ready sources found.</strong> Add documentation or a repository to ground your answers, or proceed without sources.
+    </div>
+    <a href="/sources/new" class="btn btn-secondary btn-sm" style="white-space: nowrap; margin-left: 1rem;">
+      Add a source first
+    </a>
+  </div>
+
+  <form id="ask-form" onsubmit="return false;">
+    {% csrf_token %}
+
+    <div class="card">
+      <div class="form-group">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+          <label for="code-input" style="margin-bottom: 0;">Code</label>
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <select id="language-select" class="form-control" style="width: auto; padding: 0.25rem 0.5rem; font-size: 0.85rem;">
+              <option value="">Language (Auto / Optional)</option>
+              <option value="python">Python</option>
+              <option value="javascript">JavaScript</option>
+              <option value="typescript">TypeScript</option>
+              <option value="java">Java</option>
+              <option value="cpp">C / C++</option>
+              <option value="csharp">C#</option>
+              <option value="go">Go</option>
+              <option value="rust">Rust</option>
+              <option value="sql">SQL</option>
+              <option value="html">HTML</option>
+              <option value="css">CSS</option>
+            </select>
+            <span class="text-muted text-sm" id="code-char-count">0 / 20,000</span>
+          </div>
+        </div>
+        <textarea id="code-input" class="form-control form-mono" rows="11" placeholder="Paste your code snippet here (max 20,000 characters)..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+          <label for="question-input" style="margin-bottom: 0;">Question or Error Description</label>
+          <span class="text-muted text-sm" id="question-char-count">0 / 2,000</span>
+        </div>
+        <textarea id="question-input" class="form-control" rows="3" placeholder="What does this code do? Why is this failing? (max 2,000 characters)..."></textarea>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 0.5rem;">
+        <label style="margin-bottom: 0.5rem;">Search in Knowledge Sources:</label>
+        <div id="sources-checkboxes-loading" class="text-muted text-sm">
+          Loading your ready sources...
+        </div>
+        <div id="sources-checkboxes-list" style="display: flex; flex-direction: column; gap: 0.5rem; max-height: 200px; overflow-y: auto; padding: 0.5rem; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius);">
+          <!-- Checkboxes populated by ask.js -->
+        </div>
+        <p class="text-muted text-sm" style="margin-top: 0.35rem;">
+          Ticked sources will be retrieved with local vector embeddings. If unticked, code is analyzed alone.
+        </p>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; margin-top: 1.25rem;">
+        <button type="submit" id="ask-btn" class="btn btn-primary" style="min-width: 150px;">
+          Ask Assistant
+        </button>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/ask.js' %}"></script>
+{% endblock %}

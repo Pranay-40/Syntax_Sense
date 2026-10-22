@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}File Detail - Code Explainer{% endblock %}
+
+{% block content %}
+<div id="file-detail-app" data-source-id="{{ source_id }}" data-file-id="{{ file_id }}">
+  <div style="margin-bottom: 1.5rem;">
+    <a href="/sources/{{ source_id }}" class="text-muted text-sm" style="text-decoration: none;">&larr; Back to Source Explorer</a>
+    <h1 id="file-name" style="margin-top: 0.5rem; margin-bottom: 0.25rem;">Loading file...</h1>
+    <p id="file-meta" class="text-muted"></p>
+  </div>
+
+  <div id="file-loading" class="state-box">
+    <h3>Loading content...</h3>
+    <p class="text-muted">Fetching extracted text and chunk records</p>
+  </div>
+
+  <div id="file-error" class="alert alert-error" style="display: none;"></div>
+
+  <div id="file-content-container" style="display: none;">
+    <div class="tabs">
+      <button class="tab-btn active" id="tab-preview" onclick="switchFileTab('preview')">Preview Content</button>
+      <button class="tab-btn" id="tab-chunks" onclick="switchFileTab('chunks')">Chunks & Embeddings (<span id="chunk-count-badge">0</span>)</button>
+    </div>
+
+    <!-- Preview Tab -->
+    <div id="pane-preview">
+      <div class="card" style="padding: 1.25rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+          <h3 id="preview-heading">Extracted Content</h3>
+          <span class="text-muted text-sm" id="preview-meta-info"></span>
+        </div>
+        <div id="code-preview-block" class="code-block" style="display: none;">
+          <!-- Line numbers and code -->
+        </div>
+        <div id="text-preview-block" style="white-space: pre-wrap; font-size: 0.95rem; line-height: 1.6; display: none; background: #fff; padding: 1rem; border: 1px solid var(--border); border-radius: var(--radius);">
+          <!-- Document text -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Chunks Tab -->
+    <div id="pane-chunks" style="display: none;">
+      <div id="chunks-list">
+        <!-- Chunks list rendered by file_detail.js -->
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/file_detail.js' %}"></script>
+{% endblock %}

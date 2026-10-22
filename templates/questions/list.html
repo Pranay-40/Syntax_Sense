@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Question History - Code Explainer{% endblock %}
+
+{% block content %}
+<div>
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+    <div>
+      <h1>Question History</h1>
+      <p class="text-muted">Review your past code explanations, bug diagnoses, and retrieved chunk citations.</p>
+    </div>
+    <a href="/" class="btn btn-primary">Ask new question</a>
+  </div>
+
+  <div id="history-loading" class="state-box">
+    <h3>Loading questions...</h3>
+    <p class="text-muted">Fetching your saved question history</p>
+  </div>
+
+  <div id="history-empty" class="state-box" style="display: none;">
+    <h3>No questions yet</h3>
+    <p class="text-muted">You haven't asked any questions yet. Start by submitting your code and question.</p>
+    <a href="/" class="btn btn-primary">Ask a question</a>
+  </div>
+
+  <div id="history-error" class="alert alert-error" style="display: none;"></div>
+
+  <div id="history-table-card" class="card" style="display: none; padding: 0; overflow: hidden;">
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Question / Description</th>
+            <th>Evidence Status</th>
+            <th style="text-align: right;">Action</th>
+          </tr>
+        </thead>
+        <tbody id="history-tbody">
+          <!-- Rendered by questions_list.js -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/questions_list.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block title %}Access Denied - 403{% endblock %}
+
+{% block content %}
+<div class="state-box" style="margin: 3rem auto; max-width: 500px;">
+  <h1 style="color: var(--error);">403 - Forbidden</h1>
+  <p class="text-muted">You do not have permission to access or modify this resource.</p>
+  <a href="/sources" class="btn btn-primary" style="margin-top: 1rem;">Back to Sources</a>
+</div>
+{% endblock %}

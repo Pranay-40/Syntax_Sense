@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Code Explainer and Debugging Assistant{% endblock %}</title>
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  <header class="navbar">
+    <div class="navbar-container">
+      <a href="/" class="navbar-brand">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="16 18 22 12 16 6"></polyline>
+          <polyline points="8 6 2 12 8 18"></polyline>
+        </svg>
+        <span>Code Explainer</span>
+      </a>
+
+      <nav>
+        <ul class="navbar-nav">
+          {% if user.is_authenticated %}
+            <li><a href="/" class="navbar-link {% if request.path == '/' %}active{% endif %}">Ask</a></li>
+            <li><a href="/sources" class="navbar-link {% if '/sources' in request.path %}active{% endif %}">Sources</a></li>
+            <li><a href="/questions" class="navbar-link {% if '/questions' in request.path %}active{% endif %}">History</a></li>
+            <li class="navbar-user">{{ user.email }}</li>
+            <li>
+              <button id="logout-btn" class="btn btn-secondary btn-sm" onclick="handleLogout()">Log out</button>
+            </li>
+          {% else %}
+            <li><a href="/login" class="navbar-link {% if request.path == '/login' %}active{% endif %}">Log in</a></li>
+            <li><a href="/register" class="btn btn-primary btn-sm">Create account</a></li>
+          {% endif %}
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Shared Global JS Utilities -->
+  <script>
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+
+    function showToast(message, type = 'error') {
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+      toast.textContent = message;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 250);
+      }, 4000);
+    }
+
+    async function handleLogout() {
+      try {
+        const res = await fetch('/api/auth/logout', {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/json'
+          }
+        });
+        if (res.ok || res.status === 204) {
+          window.location.href = '/login';
+        } else {
+          showToast('Failed to log out. Please try again.');
+        }
+      } catch (err) {
+        showToast('Network error during log out.');
+      }
+    }
+  </script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

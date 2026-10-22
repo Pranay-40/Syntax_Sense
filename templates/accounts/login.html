@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Log In - Code Explainer{% endblock %}
+
+{% block content %}
+<div style="max-width: 440px; margin: 3rem auto;">
+  <div class="card">
+    <div style="text-align: center; margin-bottom: 1.5rem;">
+      <h1>Log in</h1>
+      <p class="text-muted">Welcome back! Access your sources and questions</p>
+    </div>
+
+    <div id="login-error" class="alert alert-error" style="display: none;"></div>
+
+    <form id="login-form" onsubmit="return false;">
+      {% csrf_token %}
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" class="form-control" placeholder="you@example.com" required autocomplete="email">
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" class="form-control" placeholder="Your password" required autocomplete="current-password">
+      </div>
+
+      <button type="submit" id="submit-btn" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;">
+        Log in
+      </button>
+    </form>
+
+    <div style="text-align: center; margin-top: 1.5rem; font-size: 0.9rem;">
+      <span class="text-muted">Don't have an account?</span>
+      <a href="/register" style="color: var(--primary); font-weight: 500; margin-left: 0.35rem;">Create account</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/login.js' %}"></script>
+{% endblock %}
